@@ -1,0 +1,22 @@
+# Entorno virtual (No subir porque pesa mucho y depende del sistema operativo)
+venv/
+env/
+
+# Variables de entorno y secretos (¡CRÍTICO POR SEGURIDAD!)
+.env
+
+# Caché de Python (Archivos compilados autogenerados)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Modelos generados localmente (Opcional: evita subir binarios pesados si se generan al usar la app)
+models/*.joblib
+
+# Configuraciones de VS Code (Archivos locales de tu editor)
+.vscode/
+
+# Archivos del sistema operativo (Mac/Windows)
+.DS_Store
+Thumbs.db

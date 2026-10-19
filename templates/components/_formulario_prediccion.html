@@ -1,0 +1,56 @@
+<!-- Diccionario para traducir, controlar tipos y dar ayuda -->
+{% set metadata_campos = {
+    'temperature': {
+        'es': 'Temperatura', 
+        'tipo': 'number', 
+        'ayuda': 'Ingrese el valor de temperatura en grados Celsius. Ejm: 32, -10'
+    },
+    'humidity': {
+        'es': 'Humedad', 
+        'tipo': 'number', 
+        'ayuda': 'Ingrese el porcentaje de humedad en el aire. Ejm: 65, 80'
+    },
+    'pressure': {
+        'es': 'Presión', 
+        'tipo': 'number', 
+        'ayuda': 'Ingrese el valor de presión atmosférica. Ejm: 1013.2, 1005'
+    },
+    'wind_speed': {
+        'es': 'Velocidad del viento', 
+        'tipo': 'number', 
+        'ayuda': 'Ingrese la velocidad del viento en km/h. Ejm: 15.4, 5.2'
+    }
+} %}
+
+<div class="wm-card shadow-sm border-primary">
+  <div class="wm-card-head bg-primary text-white">
+    <h2 class="h5 mb-0 text-white"><i class="bi bi-magic me-2"></i>Nueva Predicción</h2>
+    <p class="mb-0 small text-white-50">Ingresa los valores para que el modelo prediga el resultado.</p>
+  </div>
+  <div class="wm-card-body">
+    
+    <!-- Contenedor vacío donde JavaScript inyectará el resultado -->
+    <div id="prediction-result-container"></div>
+
+    <form action="{{ url_for('predict') }}" method="post" id="predict-form">
+      <div class="row g-3">
+        {% for feature in prediction_features %}
+        {% set info = metadata_campos.get(feature, {'es': feature | capitalize, 'tipo': 'number', 'ayuda': 'Ingrese el valor de ' ~ feature ~ '. Ejm: 10, 2.5'}) %}
+        <div class="col-md-4 col-sm-6">
+          <label for="{{ feature }}" class="form-label fw-bold d-flex align-items-center mb-1">
+            {{ info.es }}
+            <i class="bi bi-question-circle-fill text-secondary ms-2" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ info.ayuda }}" style="cursor: help; font-size: 0.9rem;"></i>
+          </label>
+          <input type="{{ info.tipo }}" step="any" class="form-control border-secondary-subtle" id="{{ feature }}" name="{{ feature }}" placeholder="Valor..." required>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <hr class="my-4 text-primary">
+      
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        <i class="bi bi-lightning-charge-fill me-1"></i> Generar Predicción
+      </button>
+    </form>
+  </div>
+</div>

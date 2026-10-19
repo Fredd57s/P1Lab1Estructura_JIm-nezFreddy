@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WeatherML | Predicción de lluvia</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+    
+    <!-- HEADER REUTILIZABLE -->
+    <nav class="navbar navbar-dark wm-bar wm-bar-top">
+        <div class="container">
+            <span class="navbar-brand d-flex align-items-center mb-0">
+                <i class="bi bi-cloud-sun-fill me-2 fs-4"></i>WeatherML
+            </span>
+            <span class="navbar-text d-none d-md-inline">Práctica de Arquitectura de Software</span>
+        </div>
+    </nav>
+
+    <!-- AQUÍ SE INYECTARÁN LAS PANTALLAS ESPECÍFICAS -->
+    {% block content %}
+    {% endblock %}
+
+    <!-- FOOTER REUTILIZABLE -->
+    <footer class="wm-bar wm-bar-bottom mt-auto">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+            <span class="d-flex align-items-center"><i class="bi bi-cloud-sun-fill me-2"></i>WeatherML</span>
+            <span>Copyright &copy; <span id="year"></span> ESPE Sede Santo Domingo</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Para añadir scripts específicos en otras páginas -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block content %}
+    {% set show_results = results or prediction_result %}
+    {% if show_results %}
+    <!-- ================= TÍTULO DE LA PANTALLA DE RESULTADOS ================= -->
+    <div class="wm-hero">
+      <div
+        class="container wm-wrap d-flex flex-wrap align-items-center justify-content-between gap-3"
+      >
+        <div>
+          <h1 class="h3 mb-1">Resultados del modelo</h1>
+          <p class="wm-muted mb-0">Revisa qué tan bien aprendió el modelo.</p>
+        </div>
+        <a class="btn btn-light shadow-sm text-primary fw-bold px-4 py-2" href="/">
+          <i class="bi bi-arrow-left-circle-fill me-2"></i>Cargar otro dataset
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <main
+      class="container wm-wrap wm-main flex-grow-1{% if not show_results %} wm-center{% endif %}"
+    >
+      {% with messages = get_flashed_messages() %} {% for message in messages %}
+      <div
+        class="alert wm-alert alert-dismissible d-flex align-items-start wm-narrow"
+        role="alert"
+      >
+        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+        <div>{{ message }}</div>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Cerrar aviso"
+        ></button>
+      </div>
+      {% endfor %} {% endwith %} {% if not show_results %}
+      <!-- =====================================================
+       PANTALLA 1: CARGAR DATASET
+       ===================================================== -->
+      <div class="wm-narrow">
+        <div class="wm-intro">
+          <i class="bi bi-cloud-sun mb-2 d-block"></i>
+          <h1 class="h3 mb-1">Predicción de lluvia</h1>
+          <p class="wm-muted mb-0">
+            Sube tu archivo de datos y el modelo se entrena para predecir si
+            lloverá.
+          </p>
+        </div>
+
+        <section class="wm-card" aria-labelledby="t-datos">
+          <div class="wm-card-head">
+            <h2 id="t-datos" class="h5 mb-0">
+              <i class="bi bi-cloud-arrow-up me-2"></i>Cargar datos
+            </h2>
+            <p class="mb-0 small wm-muted">
+              Sube el archivo con las observaciones meteorológicas.
+            </p>
+          </div>
+          <div class="wm-card-body">
+            <form
+              action="{{ url_for('train') }}"
+              method="post"
+              enctype="multipart/form-data"
+              data-loading="Entrenando modelo…"
+            >
+              <label class="dropzone" id="dropzone" for="dataset">
+                <i
+                  class="bi bi-file-earmark-spreadsheet dz-icon"
+                  id="dz-icon"
+                ></i>
+                <span class="dz-title" id="dz-title"
+                  >Elige un archivo CSV o arrástralo aquí</span
+                >
+                <span class="dz-sub" id="dz-sub"
+                  >Solo se aceptan archivos .csv</span
+                >
+                <input
+                  class="visually-hidden"
+                  id="dataset"
+                  type="file"
+                  name="dataset"
+                  accept=".csv,text/csv"
+                  required
+                />
+              </label>
+
+              <p class="small wm-muted mt-3 mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                El archivo necesita columnas con las características y una
+                columna objetivo con al menos dos clases. Se recomienda llamarla
+                <code>rain</code>.
+              </p>
+
+              <button class="btn btn-primary btn-lg w-100 mt-4" type="submit">
+                <i class="bi bi-play-fill me-1"></i>Entrenar y ver resultados
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      {% else %}
+      <!-- =====================================================
+       PANTALLA 2: RESULTADOS Y PREDICCIÓN CON TABS
+       ===================================================== -->
+      
+      <!-- Navegación de Pestañas -->
+      <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if not prediction_result %}active{% endif %} fw-bold" id="entrenamiento-tab" data-bs-toggle="tab" data-bs-target="#entrenamiento-pane" type="button" role="tab" aria-controls="entrenamiento-pane" aria-selected="{% if not prediction_result %}true{% else %}false{% endif %}">
+            <i class="bi bi-bar-chart-fill me-2"></i>Métricas del Modelo
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if prediction_result %}active{% endif %} fw-bold text-success" id="prediccion-tab" data-bs-toggle="tab" data-bs-target="#prediccion-pane" type="button" role="tab" aria-controls="prediccion-pane" aria-selected="{% if prediction_result %}true{% else %}false{% endif %}">
+            <i class="bi bi-magic me-2"></i>Realizar Predicción
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="mainTabsContent">
+        
+        <!-- ================= PESTAÑA 1: MÉTRICAS ================= -->
+        <div class="tab-pane fade {% if not prediction_result %}show active{% endif %}" id="entrenamiento-pane" role="tabpanel" aria-labelledby="entrenamiento-tab" tabindex="0">
+          
+          {% if results %}
+          <section id="resultados" aria-label="Resultados del modelo">
+            <div class="wm-summary" role="status">
+              <i class="bi bi-check-circle-fill"></i>
+              <p class="mb-0">
+                <strong>Modelo entrenado.</strong>
+                Acertó <strong>{{ results.metrics.accuracy }}%</strong> de las
+                predicciones en datos que no vio al entrenar.
+              </p>
+            </div>
+
+            <dl class="wm-facts">
+              <div>
+                <dt>Registros</dt>
+                <dd>{{ results.rows }}</dd>
+              </div>
+              <div>
+                <dt>Características</dt>
+                <dd>{{ results.features }}</dd>
+              </div>
+              <div>
+                <dt>Variable objetivo</dt>
+                <dd><code>{{ results.target }}</code></dd>
+              </div>
+            </dl>
+
+            <h3 class="h6 fw-bold mt-4 mb-3">Métricas</h3>
+            <div class="row g-3">
+              <!-- Accuracy (Verde) -->
+              <div class="col-6 col-lg-3">
+                <div class="metric h-100">
+                  <div class="metric-top">
+                    <i class="bi bi-bullseye text-success"></i><span>Accuracy</span>
+                  </div>
+                  <!-- Para Accuracy -->
+                  <div class="metric-value" data-target="{{ results.metrics.accuracy }}">0.00%</div>
+                  <div class="progress" role="progressbar" aria-label="Accuracy" aria-valuenow="{{ results.metrics.accuracy }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-success" style="width: 0%; transition: width 1.5s ease-in-out;" data-width="{{ results.metrics.accuracy }}%"></div>
+                  </div>
+                  <p class="metric-help">Aciertos sobre el total de casos.</p>
+                </div>
+              </div>
+              <!-- Precision (Info/Azul Claro) -->
+              <div class="col-6 col-lg-3">
+                <div class="metric h-100">
+                  <div class="metric-top">
+                    <i class="bi bi-crosshair text-info"></i><span>Precision</span>
+                  </div>
+                  <!-- Para Precision -->
+                  <div class="metric-value" data-target="{{ results.metrics.precision }}">0.00%</div>
+                  <div class="progress" role="progressbar" aria-label="Precision" aria-valuenow="{{ results.metrics.precision }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-info" style="width: 0%; transition: width 1.5s ease-in-out;" data-width="{{ results.metrics.precision }}%"></div>
+                  </div>
+                  <p class="metric-help">De lo que anunció como positivo, cuánto lo era.</p>
+                </div>
+              </div>
+              <!-- Recall (Amarillo) -->
+              <div class="col-6 col-lg-3">
+                <div class="metric h-100">
+                  <div class="metric-top">
+                    <i class="bi bi-search text-warning"></i><span>Recall</span>
+                  </div>
+                  <!-- Para Recall -->
+                  <div class="metric-value" data-target="{{ results.metrics.recall }}">0.00%</div>
+                  <div class="progress" role="progressbar" aria-label="Recall" aria-valuenow="{{ results.metrics.recall }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-warning" style="width: 0%; transition: width 1.5s ease-in-out;" data-width="{{ results.metrics.recall }}%"></div>
+                  </div>
+                  <p class="metric-help">De los casos positivos reales, cuántos detectó.</p>
+                </div>
+              </div>
+              <!-- F1 Score (Azul Principal) -->
+              <div class="col-6 col-lg-3">
+                <div class="metric h-100">
+                  <div class="metric-top">
+                    <i class="bi bi-speedometer2 text-primary"></i><span>F1-score</span>
+                  </div>
+                  <!-- Para F1 Score -->
+                  <div class="metric-value" data-target="{{ results.metrics.f1 }}">0.00%</div>
+                  <div class="progress" role="progressbar" aria-label="F1-score" aria-valuenow="{{ results.metrics.f1 }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-primary" style="width: 0%; transition: width 1.5s ease-in-out;" data-width="{{ results.metrics.f1 }}%"></div>
+                  </div>
+                  <p class="metric-help">Equilibrio entre precision y recall.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4 mt-4">
+              <div class="col-xl-7">
+                <h3 class="h6 fw-bold">
+                  <i class="bi bi-grid-3x3-gap me-2"></i>Matriz de confusión
+                </h3>
+                <p class="small wm-muted">
+                  Cada fila es la clase real y cada columna lo que predijo el
+                  modelo. Las celdas azules son aciertos.
+                </p>
+                <div class="table-responsive">
+                  <table class="table wm-table text-center align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-start">Real / Predicción</th>
+                        {% for label in results.metrics.labels %}
+                        <th>{{ label }}</th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for row in results.metrics.confusion_matrix %} {% set row_i = loop.index0 %}
+                      <tr>
+                        <th scope="row" class="text-start">
+                          {{ results.metrics.labels[row_i] }}
+                        </th>
+                        {% for value in row %}
+                        <td class="{{ 'cm-hit' if loop.index0 == row_i }}">
+                          {{ value }}
+                        </td>
+                        {% endfor %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="col-xl-5">
+                <h3 class="h6 fw-bold">
+                  <i class="bi bi-pie-chart me-2"></i>Distribución de clases
+                </h3>
+                <p class="small wm-muted">
+                  Cuántos registros hay de cada clase en tu archivo.
+                </p>
+                {% set total = results.class_distribution.values() | sum %}
+                <ul class="wm-dist">
+                  {% for label, count in results.class_distribution.items() %}
+                  <li>
+                    <div class="d-flex justify-content-between">
+                      <span class="fw-semibold">{{ label }}</span>
+                      <span class="wm-muted"
+                        >{{ count }}{% if total %} ({{ (count / total * 100) |
+                        round(1) }}%){% endif %}</span
+                      >
+                    </div>
+                    <div
+                      class="progress"
+                      role="progressbar"
+                      aria-label="{{ label }}"
+                      aria-valuenow="{{ (count / total * 100) | round(1) if total else 0 }}"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      <div
+                        class="progress-bar"
+                        style="width:{{ (count / total * 100) | round(1) if total else 0 }}%"
+                      ></div>
+                    </div>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+
+            <p class="small wm-muted mt-4 mb-0 pt-3 wm-divider">
+              <i class="bi bi-save me-1"></i>Modelo guardado en
+              <code>{{ results.model_path }}</code>
+            </p>
+          </section>
+          {% endif %}
+
+        </div>
+
+        <!-- ================= PESTAÑA 2: FORMULARIO ================= -->
+        <div class="tab-pane fade {% if prediction_result %}show active{% endif %}" id="prediccion-pane" role="tabpanel" aria-labelledby="prediccion-tab" tabindex="0">
+          
+          <!-- Inclusión del formulario modular -->
+          {% include "components/_formulario_prediccion.html" %}
+
+        </div>
+        
+      </div>
+
+      {% endif %}
+    </main>
+{% endblock %}
